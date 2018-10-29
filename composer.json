@@ -11,8 +11,7 @@
     ],
     "require": {
         "php": ">=7.0.0",
-        "yiisoft/yii2": "*",
-        "yii2-webivan1/yii2-validate-action-params": "dev-master"
+        "yiisoft/yii2": "*"
     },
     "autoload": {
         "psr-4": {
