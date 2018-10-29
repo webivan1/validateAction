@@ -1,0 +1,28 @@
+{
+    "name": "yii2-webivan1/yii2-validate-action-params",
+    "description": "Extension Yii2",
+    "keywords": ["yii2", "extension", "validate", "action validate"],
+    "type": "yii2-extension",
+    "authors": [
+        {
+            "name": "Ivan Maltsev",
+            "email": "info-babki@yandex.ru"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "yiisoft/yii2": "*",
+        "yii2-webivan1/yii2-validate-action-params": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "webivan\\validateAction\\": ""
+        }
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/webivan1/validateAction.git"
+        }
+    ]
+}
