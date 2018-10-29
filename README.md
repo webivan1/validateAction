@@ -72,7 +72,7 @@ namespace модели (Важно указать полный путь к мо�
     /**
      * @param \app\models\House $house
      */
-    public function actionOwnComments(House $house) 
+    public function actionHouse(House $house) 
     {
         return $this->render('index', compact('house'));
     }
