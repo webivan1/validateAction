@@ -9,6 +9,7 @@ namespace webivan\validateAction\tests;
 
 use Yii;
 use webivan\validateAction\tests\models\TestUser;
+use yii\caching\FileCache;
 use yii\di\Container;
 use yii\helpers\ArrayHelper;
 use yii\web\Application;
@@ -51,6 +52,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
                 ],
                 'user' => [
                     'identityClass' => TestUser::class
+                ],
+                'cache' => [
+                    'class' => FileCache::class
                 ]
             ]
         ], $config));

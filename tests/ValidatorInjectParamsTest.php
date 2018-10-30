@@ -83,19 +83,28 @@ class ValidatorInjectParamsTest extends TestCase
 
     public function testInjectModel()
     {
-        $model = new TestActiveRecord();
-
         $controller = clone $this->controller;
         $result = $controller->run('test-model');
 
-        $this->assertEquals($result, $model);
+        $this->assertNull($result);
     }
 
     public function testInjectModelParam()
     {
+        $model = new TestActiveRecord();
         $controller = clone $this->controller;
         $result = $controller->run('test-model', [
             'model' => 1000
+        ]);
+
+        $this->assertEquals($model, $result);
+    }
+
+    public function testInjectModelParamRequired()
+    {
+        $controller = clone $this->controller;
+        $result = $controller->run('test-model-required', [
+            'model' => ['Array']
         ]);
 
         $this->assertNull($result);

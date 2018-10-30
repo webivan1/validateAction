@@ -1,83 +1,152 @@
 # Ext Yii 2 Validate action params, DI action
 
-Установка
+Install
 ---------
 
 ```
 composer require yii2-webivan1/yii2-validate-action-params
 ```
  
-Настройка
+Settings
 ---------
- 
-Любой контроллер, например SiteController, добавим к нему trait
-`webivan\validateAction\ValidateActionTrait` и behaviors 
-(Можно это сделать глобально в базовый класс контроллера)
+
+Add trait in any controller or global controller for trigger event before runAction
+```php 
+    use webivan\validateAction\ValidateActionTrait;
+```
+
+Add behavior in controller
+```php
+    public function behaviors()
+    {
+        return [
+            'validation' => [
+                'class' => webivan\validateAction\ActionValidateBehavior::class,
+                // 'actions' => ['index', 'about'] // Validate only action
+            ]
+        ];
+    }
+```
+
+Usage
+-----
+
+### Add types by params action [php7]
 
 ```php
-    class SiteController extends Controller 
+    public function actionIndex(int $number, string $name, array $data) 
     {
-        use webivan\validateAction\ValidateActionTrait;
-        
-        public function behaviors()
-        {
-            return [
-                'validation' => [
-                    'class' => webivan\validateAction\ActionValidateBehavior::class,
-                ]
-            ];
-        }
-        
         // ...
     }
 ```
 
-Теперь возьмем для примера такой action:
-
-```php
-    public function actionTest(int $num, string $name, array $data) 
-    {
-        // Все входные параметры будут провалидированы согласно типам
-    }
-```
-
-Или
+### Or add phpdoc by action together with tag @validate
 
 ```php
     /**
      * @validate
-     * @param int $num
+     * @param integer $number
      * @param string $name
-     * @param array $data
+     * @prams array $data
      */
-    public function actionTest($num, $name, array $data) 
+    public function actionIndex($number, $name, array $data) 
     {
-        // Все входные параметры будут провалидированы согласно phpdoc
+        // ...
     }
 ```
 
-!!! Чтобы валидировать параметры через phpdoc Вам нужно добавить параметр @validate
+Dependency injection 
+----
 
-Внедрение зависимостей в action
----
+### You can add DI in action
 
-```php
-    public function actionTest(int $num, Request $request) 
+```php 
+    public function actionIndex(Request $request, int $number, string $name, array $data, Response $response) 
     {
-        
+        // ...
     }
 ```
 
-или
+### Or phpdoc. Write the full path to the class name!
 
-```php
+````php 
     /**
      * @validate
-     * @param int $num
      * @param \yii\web\Request $request
+     * @param integer $number
+     * @param string $name
+     * @prams array $data
+     * @param \yii\web\Response $response
      */
-    public function actionTest($num, $request) 
+    public function actionIndex($request, $number, $name, $data, $response) 
     {
+        // ...
+    }
+````
+
+### Add models [ActiveRecord]
+
+```php 
+    // Usually
+    public function actionIndexOld($cityId) 
+    {
+        if (is_null($city = City::findOne(['id' => intval($cityId)]))) {
+            throw new HttpExceprion(404);
+        }
         
+        return $city;
+    }
+    
+    // Now
+    public function actionIndexNew(City $city) 
+    {
+        return $city;
+    }
+    
+    // Or
+    /**
+     * @validate
+     * @param \app\models\City $city
+     */
+    public function actionIndexNew($city) 
+    {
+        return $city;
     }
 ```
+
+### User model
+
+```php 
+    public function beforeAction($action)
+    {
+        if (!parent::beforeAction($action)) {
+            throw new HttpException(404);
+        }
+        
+        return true;
+    }
+
+    // If user is guest, Error 404
+    public function actionIndexNew(User $user) 
+    {
+        // Error 404
+    }
+    
+    // If user is login, User::findOne(['id' => \Yii::$app->user->id])
+    public function actionIndexNew(User $user) 
+    {
+        return $user;
+    }
+```
+
+### How to change the default query DI?
+
+Add interface ` webivan\validateAction\models\IFindItem ` in model
+
+### How to change the default column search model?
+
+Add interface ` webivan\validateAction\models\IFindColumn ` in model
+
+License
+----
+MIT

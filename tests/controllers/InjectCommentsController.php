@@ -8,6 +8,7 @@
 
 namespace webivan\validateAction\tests\controllers;
 
+use webivan\validateAction\tests\models\TestActiveRecord;
 use webivan\validateAction\ValidateActionBehavior;
 use webivan\validateAction\ValidateActionTrait;
 use yii\web\Request;
@@ -74,9 +75,19 @@ class InjectCommentsController extends Controller
     /**
      * @validate
      * @param \webivan\validateAction\tests\models\TestActiveRecord|null $model
-     * @return null
+     * @return mixed
      */
     public function actionTestModel($model = null)
+    {
+        return $model;
+    }
+
+    /**
+     * @validate
+     * @param \webivan\validateAction\tests\models\TestActiveRecord $model
+     * @return mixed
+     */
+    public function actionTestModelRequired($model)
     {
         return $model;
     }

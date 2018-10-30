@@ -16,6 +16,7 @@ use yii\base\Controller;
 use yii\base\DynamicModel;
 use phpDocumentor\Reflection\DocBlock;
 use phpDocumentor\Reflection\DocBlockFactory;
+use yii\caching\Cache;
 
 class ValidateActionBehavior extends Behavior
 {
@@ -23,11 +24,6 @@ class ValidateActionBehavior extends Behavior
      * @var string[]
      */
     public $actions = [];
-
-    /**
-     * @var integer|null
-     */
-    public $cacheObjectParam = 1800;
 
     /**
      * @return array
@@ -50,37 +46,43 @@ class ValidateActionBehavior extends Behavior
         }
 
         try {
-            $method = $this->getMethod($event->sender, $event->method);
-
-            /** @var IModel $model */
-
-            if ($comment = $this->hasCommentValidate($method)) {
-                $model = new DocCommentModel($event, $comment->getTagsByName('param'), $method);
-            } else {
-                $parameters = $method->getParameters();
-                $model = new ParamsModel($event, $parameters, $method);
-            }
-
-            $validateModel = $model->createValidationModel();
-
-            $validateModel->on(
-                DynamicModel::EVENT_BEFORE_VALIDATE,
-                function () use ($model, $validateModel) {
-                    $this->beforeValidate($model, $validateModel);
-                }
-            );
-
-            $validateModel->on(
-                DynamicModel::EVENT_AFTER_VALIDATE,
-                function () use ($event, $model) {
-                    $this->updateParams($event, $model);
-                }
-            );
-
-            $event->isValid = $validateModel->validate();
+            $this->handle($event);
         } catch (\DomainException $e) {
             \Yii::error($e->getMessage());
         }
+    }
+
+    protected function handle(EventValidateAction $event)
+    {
+        /** @var \ReflectionMethod $method */
+        $method = $this->getMethod($event->sender, $event->method);
+
+        /** @var IModel $model */
+
+        if ($comment = $this->hasCommentValidate($method)) {
+            $model = new DocCommentModel($event, $comment->getTagsByName('param'), $method);
+        } else {
+            $parameters = $method->getParameters();
+            $model = new ParamsModel($event, $parameters, $method);
+        }
+
+        $validateModel = $model->createValidationModel();
+
+        $validateModel->on(
+            DynamicModel::EVENT_BEFORE_VALIDATE,
+            function () use ($model, $validateModel) {
+                $this->beforeValidate($model, $validateModel);
+            }
+        );
+
+        $validateModel->on(
+            DynamicModel::EVENT_AFTER_VALIDATE,
+            function () use ($event, $model) {
+                $this->updateParams($event, $model);
+            }
+        );
+
+        $event->isValid = $validateModel->validate();
     }
 
     /**
@@ -153,7 +155,7 @@ class ValidateActionBehavior extends Behavior
      */
     protected function getComment(string $content): DocBlock
     {
-        $factory  = DocBlockFactory::createInstance();
+        $factory = DocBlockFactory::createInstance();
         return $factory->create($content);
     }
 

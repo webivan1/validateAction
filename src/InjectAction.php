@@ -8,9 +8,11 @@
 
 namespace webivan\validateAction;
 
+use webivan\validateAction\models\IFindColumn;
+use webivan\validateAction\models\IFindItem;
 use webivan\validateAction\models\IModel;
 use yii\db\ActiveRecord;
-use yii\di\ServiceLocator;
+use yii\web\User;
 
 class InjectAction
 {
@@ -86,14 +88,10 @@ class InjectAction
     {
         $value = $this->model->getAttributes()[$this->name] ?? null;
 
-        if ($this->hasUserModel()) {
-            $value = !\Yii::$app->user->isGuest
-                ? $this->findItemModel($model, \Yii::$app->user->id)
-                : null;
+        if ($user = $this->hasUserModel()) {
+            $value = $this->findItemModel($model, $user->isGuest ? null : $user->id);
         } else {
-            $value = empty($value)
-                ? $model
-                : $this->findItemModel($model, $value);
+            $value = $this->findItemModel($model, $value);
         }
 
         $this->model->setAttribute($this->name, $value);
@@ -101,21 +99,27 @@ class InjectAction
 
     /**
      * @param ActiveRecord $model
-     * @return mixed
+     * @return string
      */
-    protected function getColumnSearch(ActiveRecord $model)
+    protected function getColumn(ActiveRecord $model)
     {
-        return method_exists($model, 'getValidationColumnKey')
-            ? $model->getValidationColumnKey()
-            : $model->primaryKey()[0];
+        if ($model instanceof IFindColumn) {
+            return $model->columnForInjectAction();
+        } else {
+            return $model->primaryKey()[0];
+        }
     }
 
     /**
-     * @return bool
+     * @return User|bool
      */
-    protected function hasUserModel(): bool
+    protected function hasUserModel()
     {
-        return \Yii::$app->has('user') && \Yii::$app->user->identityClass === $this->className;
+        if (\Yii::$app->has('user') && \Yii::$app->user->identityClass === $this->className) {
+            return \Yii::$app->user;
+        }
+
+        return false;
     }
 
     /**
@@ -126,9 +130,17 @@ class InjectAction
     protected function findItemModel(ActiveRecord $model, $value)
     {
         try {
-            $columnName = $this->getColumnSearch($model);
-            $query = $model->find()->where([$columnName => $value]);
-            return $query->one();
+            if (!$value) {
+                throw new \Exception('Value is empty');
+            }
+
+            if ($model instanceof IFindItem) {
+                return $model->findItemForInjectAction($value);
+            } else {
+                return $model->find()
+                    ->where([$this->getColumn($model) => $value])
+                    ->one();
+            }
         } catch (\Exception $e) {
             return null;
         }

@@ -53,4 +53,9 @@ class InjectParamController extends Controller
     {
         return $model;
     }
+
+    public function actionTestModelRequired(TestActiveRecord $model)
+    {
+        return $model;
+    }
 }
