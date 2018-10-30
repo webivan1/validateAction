@@ -13,7 +13,7 @@ use webivan\validateAction\ValidateActionTrait;
 use yii\web\Request;
 use yii\web\Response;
 use yii\caching\FileCache;
-use yii\rest\Controller;
+use yii\web\Controller;
 
 class InjectCommentsController extends Controller
 {
@@ -69,5 +69,15 @@ class InjectCommentsController extends Controller
     public function actionTestParams($request, $param1, $param2 = 'test', $response)
     {
         return compact('param1', 'param2', 'request', 'response');
+    }
+
+    /**
+     * @validate
+     * @param \webivan\validateAction\tests\models\TestActiveRecord|null $model
+     * @return null
+     */
+    public function actionTestModel($model = null)
+    {
+        return $model;
     }
 }

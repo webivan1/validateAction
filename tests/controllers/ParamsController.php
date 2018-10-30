@@ -10,7 +10,7 @@ namespace webivan\validateAction\tests\controllers;
 
 use webivan\validateAction\ValidateActionBehavior;
 use webivan\validateAction\ValidateActionTrait;
-use yii\rest\Controller;
+use yii\web\Controller;
 
 class ParamsController extends Controller
 {

@@ -8,12 +8,13 @@
 
 namespace webivan\validateAction\tests\controllers;
 
+use webivan\validateAction\tests\models\TestActiveRecord;
 use webivan\validateAction\ValidateActionBehavior;
 use webivan\validateAction\ValidateActionTrait;
 use yii\web\Request;
 use yii\web\Response;
 use yii\caching\FileCache;
-use yii\rest\Controller;
+use yii\web\Controller;
 
 class InjectParamController extends Controller
 {
@@ -46,5 +47,10 @@ class InjectParamController extends Controller
     public function actionTestParams(Request $request, int $param1, string $param2 = 'test', Response $response)
     {
         return compact('param1', 'param2', 'request', 'response');
+    }
+
+    public function actionTestModel(TestActiveRecord $model = null)
+    {
+        return $model;
     }
 }

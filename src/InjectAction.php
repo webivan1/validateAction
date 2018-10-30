@@ -10,6 +10,7 @@ namespace webivan\validateAction;
 
 use webivan\validateAction\models\IModel;
 use yii\db\ActiveRecord;
+use yii\di\ServiceLocator;
 
 class InjectAction
 {
@@ -42,11 +43,12 @@ class InjectAction
     }
 
     /**
+     * @param object $model
      * @return bool
      */
-    private function isTypeActiveRecord(): bool
+    private function isTypeActiveRecord($model): bool
     {
-        return $this->className instanceof ActiveRecord;
+        return $model instanceof ActiveRecord;
     }
 
     /**
@@ -66,27 +68,32 @@ class InjectAction
      */
     public function run()
     {
-        if ($this->isTypeActiveRecord()) {
-            $this->injectActiveRecord();
-        } else if ($container = $this->hasContainer()) {
-            $this->model->setAttribute($this->name, $container);
+        if ($container = $this->hasContainer()) {
+            if ($this->isTypeActiveRecord($container)) {
+                $this->injectActiveRecord($container);
+            } else {
+                $this->model->setAttribute($this->name, $container);
+            }
         } else {
             $this->model->setAttribute($this->name, null);
         }
     }
 
-    protected function injectActiveRecord()
+    /**
+     * @param ActiveRecord $model
+     */
+    protected function injectActiveRecord(ActiveRecord $model)
     {
         $value = $this->model->getAttributes()[$this->name] ?? null;
-
-        $model = new $this->model;
 
         if ($this->hasUserModel()) {
             $value = !\Yii::$app->user->isGuest
                 ? $this->findItemModel($model, \Yii::$app->user->id)
                 : null;
         } else {
-            $value = $this->findItemModel($model, $value);
+            $value = empty($value)
+                ? $model
+                : $this->findItemModel($model, $value);
         }
 
         $this->model->setAttribute($this->name, $value);
@@ -123,7 +130,7 @@ class InjectAction
             $query = $model->find()->where([$columnName => $value]);
             return $query->one();
         } catch (\Exception $e) {
-            return $model;
+            return null;
         }
     }
 }

@@ -8,6 +8,7 @@
 
 namespace webivan\validateAction\tests;
 
+use webivan\validateAction\tests\models\TestActiveRecord;
 use Yii;
 use webivan\validateAction\tests\controllers\InjectParamController;
 use yii\caching\FileCache;
@@ -78,5 +79,25 @@ class ValidatorInjectParamsTest extends TestCase
             'request' => $request,
             'response' => $response
         ]));
+    }
+
+    public function testInjectModel()
+    {
+        $model = new TestActiveRecord();
+
+        $controller = clone $this->controller;
+        $result = $controller->run('test-model');
+
+        $this->assertEquals($result, $model);
+    }
+
+    public function testInjectModelParam()
+    {
+        $controller = clone $this->controller;
+        $result = $controller->run('test-model', [
+            'model' => 1000
+        ]);
+
+        $this->assertNull($result);
     }
 }
