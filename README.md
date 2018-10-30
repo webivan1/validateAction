@@ -1,16 +1,10 @@
-# Ext Yii 2 Validate action params by comments
+# Ext Yii 2 Validate action params, DI action
 
 Установка
 ---------
 
 ```
 composer require yii2-webivan1/yii2-validate-action-params
-```
-Или 
-```
-"require": {
-    "yii2-webivan1/yii2-validate-action-params": "dev-master"
-}
 ```
  
 Настройка
@@ -38,68 +32,52 @@ composer require yii2-webivan1/yii2-validate-action-params
     }
 ```
 
-Теперь возьмем такой action:
+Теперь возьмем для примера такой action:
 
 ```php
-    public function actionFlat($buildId, $houseId, $floor, $number) 
+    public function actionTest(int $num, string $name, array $data) 
+    {
+        // Все входные параметры будут провалидированы согласно типам
+    }
+```
+
+Или
+
+```php
+    /**
+     * @validate
+     * @param int $num
+     * @param string $name
+     * @param array $data
+     */
+    public function actionTest($num, $name, array $data) 
+    {
+        // Все входные параметры будут провалидированы согласно phpdoc
+    }
+```
+
+!!! Чтобы валидировать параметры через phpdoc Вам нужно добавить параметр @validate
+
+Внедрение зависимостей в action
+---
+
+```php
+    public function actionTest(int $num, Request $request) 
     {
         
     }
 ```
 
-Чтобы провалидировать данные параметры `$buildId, $houseId, $floor, $number`.
-Надо всего лишь добавить комментарии к этому экшену:
+или
 
 ```php
     /**
-     * @param integer $buildId
-     * @param integer $houseId
-     * @param integer|null $floor
-     * @param integer|null $number
+     * @validate
+     * @param int $num
+     * @param \yii\web\Request $request
      */
-    public function actionFlat($buildId, $houseId, $floor = 1, $number = null) 
+    public function actionTest($num, $request) 
     {
         
-    }
-```
-
-Пример с моделью ActiveRecord, мы указываем тип параметра 
-namespace модели (Важно указать полный путь к модели).
-Парамер запроса будет будет искаться по данной модели (Model::find()->where([PRIMARY_KEY => {VALUE}])->one().
-
-
-```php
-    /**
-     * @param \app\models\House $house
-     */
-    public function actionHouse(House $house) 
-    {
-        return $this->render('index', compact('house'));
-    }
-```
-
-!!!Чтобы использовать колонку для поиска не PrimaryKey модели, то укажите в своей модели метод:
-```php 
-    public function getValidationColumnKey(): string
-    {
-        // Укажите любую колонку по которой будет идти поиск
-        return 'token_id'; 
-    } 
-```
-
-Для того чтобы получить текущего юзера в экшене, можно не передавать его в queryParams 
-А behavior все сделает сам, пример:
-
-```php
-    /**
-     * Считывается значение параметра $user и подставляется в класс ActiveRecord.
-     * !При этом надо указать полный путь до модели \app\models\User.
-     * User будет подставляться сам из Yii::$app->getUser()->id если не гость. 
-     *
-     * @param \app\models\User $user
-     */
-    public function actionMyOwnComments(User $user) 
-    {
-        return $user->comments;
     }
 ```
