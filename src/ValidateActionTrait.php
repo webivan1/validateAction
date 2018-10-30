@@ -8,28 +8,34 @@
 
 namespace webivan\validateAction;
 
+use yii\base\ActionEvent;
 use yii\helpers\Inflector;
 
 trait ValidateActionTrait
 {
     /**
+     * @var EventValidateAction
+     */
+    public $eventValidate;
+
+    /**
      * {@inheritdoc}
      */
     public function runAction($id, $params = [])
     {
-        $event = new EventValidateAction([
+        $this->eventValidate = new EventValidateAction([
             'params' => $params,
             'action' => $id,
             'method' => $this->createMethodById($id)
         ]);
 
-        $this->trigger(EventValidateAction::EVENT_NAME, $event);
+        $this->trigger(EventValidateAction::EVENT_NAME, $this->eventValidate);
 
-        if (!$event->isValid) {
-            return false;
-        }
+        $this->on(self::EVENT_BEFORE_ACTION, function (ActionEvent $event) {
+            $event->isValid = $this->eventValidate->isValid;
+        });
 
-        return parent::runAction($id, $event->params);
+        return parent::runAction($id, $this->eventValidate->params);
     }
 
     /**

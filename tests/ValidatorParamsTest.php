@@ -41,7 +41,7 @@ class ValidatorParamsTest extends TestCase
             'data' => 'string'
         ]);
 
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testValidString()
@@ -61,7 +61,7 @@ class ValidatorParamsTest extends TestCase
             'data' => 45.5
         ]);
 
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testValidFloat()
@@ -81,7 +81,7 @@ class ValidatorParamsTest extends TestCase
             'data' => ['Array']
         ]);
 
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testValidBoolean()
@@ -101,7 +101,7 @@ class ValidatorParamsTest extends TestCase
             'data' => 'bool'
         ]);
 
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testValidArray()
@@ -121,7 +121,7 @@ class ValidatorParamsTest extends TestCase
             'data' => 'String'
         ]);
 
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testValidManyTypes()

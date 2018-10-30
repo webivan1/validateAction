@@ -11,6 +11,7 @@ namespace webivan\validateAction\tests\controllers;
 use webivan\validateAction\ValidateActionBehavior;
 use webivan\validateAction\ValidateActionTrait;
 use yii\web\Controller;
+use yii\web\HttpException;
 
 class CommentsController extends Controller
 {
