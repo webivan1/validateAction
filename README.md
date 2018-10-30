@@ -47,7 +47,7 @@ Usage
      * @validate
      * @param integer $number
      * @param string $name
-     * @prams array $data
+     * @param array $data
      */
     public function actionIndex($number, $name, array $data) 
     {
@@ -75,7 +75,7 @@ Dependency injection
      * @param \yii\web\Request $request
      * @param integer $number
      * @param string $name
-     * @prams array $data
+     * @param array $data
      * @param \yii\web\Response $response
      */
     public function actionIndex($request, $number, $name, $data, $response) 
