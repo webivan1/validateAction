@@ -21,7 +21,7 @@ Add behavior in controller
     {
         return [
             'validation' => [
-                'class' => webivan\validateAction\ActionValidateBehavior::class,
+                'class' => webivan\validateAction\ValidateActionBehavior::class,
                 // 'actions' => ['index', 'about'] // Validate only action
             ]
         ];
