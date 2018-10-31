@@ -15,10 +15,13 @@ use phpDocumentor\Reflection\Types\{
 };
 use webivan\validateAction\EventValidateAction;
 use webivan\validateAction\InjectAction;
+use webivan\validateAction\helpers\ErrorsTrait;
 use yii\base\DynamicModel;
 
 class DocCommentModel implements IModel
 {
+    use ErrorsTrait;
+
     /**
      * @var EventValidateAction
      */
@@ -38,11 +41,6 @@ class DocCommentModel implements IModel
      * @var array
      */
     private $rules = [];
-
-    /**
-     * @var array
-     */
-    private $errors = [];
 
     /**
      * @var \ReflectionMethod
@@ -181,37 +179,6 @@ class DocCommentModel implements IModel
                 }
             }]
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getErrors(): array
-    {
-        return $this->errors;
-    }
-
-    /**
-     * @param string $attr
-     * @param string $message
-     * @return void
-     */
-    public function addError(string $attr, string $message)
-    {
-        if (isset($this->errors[$attr])) {
-            $this->errors[$attr][] = $message;
-        } else {
-            $this->errors[$attr] = [];
-            $this->addError($attr, $message);
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasErrors(): bool
-    {
-        return !empty($this->errors);
     }
 
     /**

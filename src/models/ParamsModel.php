@@ -8,17 +8,15 @@
 
 namespace webivan\validateAction\models;
 
-use phpDocumentor\Reflection\DocBlock\Tags\Param;
-use phpDocumentor\Reflection\Type;
-use phpDocumentor\Reflection\Types\{
-    Integer, Nullable, Object_, String_, Null_, Float_, Array_, Boolean, Compound
-};
 use webivan\validateAction\EventValidateAction;
+use webivan\validateAction\helpers\ErrorsTrait;
 use webivan\validateAction\InjectAction;
 use yii\base\DynamicModel;
 
 class ParamsModel implements IModel
 {
+    use ErrorsTrait;
+
     /**
      * @var EventValidateAction
      */
@@ -43,11 +41,6 @@ class ParamsModel implements IModel
      * @var array
      */
     private $required = [];
-
-    /**
-     * @var array
-     */
-    private $errors = [];
 
     /**
      * @var \ReflectionMethod
@@ -150,37 +143,6 @@ class ParamsModel implements IModel
                 }
             }]
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getErrors(): array
-    {
-        return $this->errors;
-    }
-
-    /**
-     * @param string $attr
-     * @param string $message
-     * @return void
-     */
-    public function addError(string $attr, string $message)
-    {
-        if (isset($this->errors[$attr])) {
-            $this->errors[$attr][] = $message;
-        } else {
-            $this->errors[$attr] = [];
-            $this->addError($attr, $message);
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasErrors(): bool
-    {
-        return !empty($this->errors);
     }
 
     /**

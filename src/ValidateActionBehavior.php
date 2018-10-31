@@ -16,7 +16,7 @@ use yii\base\Controller;
 use yii\base\DynamicModel;
 use phpDocumentor\Reflection\DocBlock;
 use phpDocumentor\Reflection\DocBlockFactory;
-use yii\caching\Cache;
+use yii\base\ErrorException;
 
 class ValidateActionBehavior extends Behavior
 {
@@ -45,33 +45,29 @@ class ValidateActionBehavior extends Behavior
             return;
         }
 
-        try {
-            $this->handle($event);
-        } catch (\DomainException $e) {
-            \Yii::error($e->getMessage());
-        }
+        $this->handle($event);
     }
 
+    /**
+     * @param EventValidateAction $event
+     * @return void
+     */
     protected function handle(EventValidateAction $event)
     {
-        /** @var \ReflectionMethod $method */
         $method = $this->getMethod($event->sender, $event->method);
-
-        /** @var IModel $model */
 
         if ($comment = $this->hasCommentValidate($method)) {
             $model = new DocCommentModel($event, $comment->getTagsByName('param'), $method);
         } else {
-            $parameters = $method->getParameters();
-            $model = new ParamsModel($event, $parameters, $method);
+            $model = new ParamsModel($event, $method->getParameters(), $method);
         }
 
         $validateModel = $model->createValidationModel();
 
         $validateModel->on(
             DynamicModel::EVENT_BEFORE_VALIDATE,
-            function () use ($model, $validateModel) {
-                $this->beforeValidate($model, $validateModel);
+            function () use ($model, $validateModel, $event) {
+                $this->beforeValidate($model, $validateModel, $event);
             }
         );
 
@@ -88,14 +84,12 @@ class ValidateActionBehavior extends Behavior
     /**
      * @param IModel $model
      * @param DynamicModel $validateModel
+     * @param EventValidateAction $event
      */
-    protected function beforeValidate(IModel $model, DynamicModel $validateModel)
+    protected function beforeValidate(IModel $model, DynamicModel $validateModel, EventValidateAction $event)
     {
-        if ($model->hasErrors()) {
-            foreach ($model->getErrors() as $attr => $errors) {
-                $validateModel->addError($attr, $errors[0]);
-            }
-        }
+        !$model->hasErrors() ?: $validateModel->addErrors($model->getErrors());
+        !$validateModel->hasErrors() ?: $event->setErrors($validateModel->getErrors());
     }
 
     /**
@@ -132,7 +126,7 @@ class ValidateActionBehavior extends Behavior
      * @param Controller $controller
      * @param string $methodName
      * @return \ReflectionMethod
-     * @throws \DomainException
+     * @throws ErrorException
      */
     protected function getMethod(Controller $controller, string $methodName): \ReflectionMethod
     {
@@ -143,7 +137,7 @@ class ValidateActionBehavior extends Behavior
         });
 
         if (empty($methods)) {
-            throw new \DomainException('Undefined method ' . $methodName . ' in class ' . get_class($controller));
+            throw new ErrorException('Undefined method ' . $methodName . ' in class ' . get_class($controller));
         }
 
         return array_shift($methods);

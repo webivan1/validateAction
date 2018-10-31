@@ -9,9 +9,12 @@
 namespace webivan\validateAction;
 
 use yii\base\Event;
+use webivan\validateAction\helpers\ErrorsTrait;
 
 class EventValidateAction extends Event
 {
+    use ErrorsTrait;
+
     const EVENT_NAME = 'beforeRunAction';
 
     /**

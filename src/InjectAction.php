@@ -129,20 +129,16 @@ class InjectAction
      */
     protected function findItemModel(ActiveRecord $model, $value)
     {
-        try {
-            if (!$value) {
-                throw new \Exception('Value is empty');
-            }
-
-            if ($model instanceof IFindItem) {
-                return $model->findItemForInjectAction($value);
-            } else {
-                return $model->find()
-                    ->where([$this->getColumn($model) => $value])
-                    ->one();
-            }
-        } catch (\Exception $e) {
+        if (!$value) {
             return null;
+        }
+
+        if ($model instanceof IFindItem) {
+            return $model->findItemForInjectAction($value);
+        } else {
+            return $model->find()
+                ->where([$this->getColumn($model) => $value])
+                ->one();
         }
     }
 }
