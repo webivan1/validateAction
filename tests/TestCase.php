@@ -12,6 +12,7 @@ use webivan\validateAction\tests\models\TestUser;
 use yii\di\Container;
 use yii\helpers\ArrayHelper;
 use yii\web\Application;
+use yii\web\User;
 
 /**
  * This is the base class for all yii framework unit tests.
@@ -50,7 +51,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
                     'scriptUrl' => '/index.php',
                 ],
                 'user' => [
-                    'identityClass' => TestUser::class
+                    'class' => User::class,
+                    'identityClass' => TestUser::class,
+                    'enableSession' => false,
                 ]
             ]
         ], $config));

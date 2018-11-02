@@ -9,6 +9,7 @@
 namespace webivan\validateAction\tests\controllers;
 
 use webivan\validateAction\tests\models\TestActiveRecord;
+use webivan\validateAction\tests\models\TestUser;
 use webivan\validateAction\ValidateActionBehavior;
 use webivan\validateAction\ValidateActionTrait;
 use yii\web\Request;
@@ -57,5 +58,10 @@ class InjectParamController extends Controller
     public function actionTestModelRequired(TestActiveRecord $model)
     {
         return $model;
+    }
+
+    public function actionTestUserModel(TestUser $user)
+    {
+        return $user;
     }
 }

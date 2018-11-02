@@ -45,14 +45,14 @@ class ValidatorCommentsTest extends TestCase
     }
 
     public function testValidString()
-{
-    $controller = clone $this->controller;
-    $result = $controller->run('test-string', [
-        'data' => 'String'
-    ]);
+    {
+        $controller = clone $this->controller;
+        $result = $controller->run('test-string', [
+            'data' => 'String'
+        ]);
 
-    $this->assertEquals($result, 'String');
-}
+        $this->assertEquals($result, 'String');
+    }
 
     public function testInvalidString()
     {

@@ -91,4 +91,14 @@ class InjectCommentsController extends Controller
     {
         return $model;
     }
+
+    /**
+     * @validate
+     * @param \webivan\validateAction\tests\models\TestUser $user
+     * @return \webivan\validateAction\tests\models\TestUser
+     */
+    public function actionTestUserModel($user)
+    {
+        return $user;
+    }
 }

@@ -12,6 +12,7 @@ use webivan\validateAction\models\IFindColumn;
 use webivan\validateAction\models\IFindItem;
 use webivan\validateAction\models\IModel;
 use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
 use yii\web\User;
 
 class InjectAction
@@ -88,7 +89,7 @@ class InjectAction
     {
         $value = $this->model->getAttributes()[$this->name] ?? null;
 
-        if ($user = $this->hasUserModel()) {
+        if ($user = $this->hasUserModel($model)) {
             $value = $this->findItemModel($model, $user->isGuest ? null : $user->id);
         } else {
             $value = $this->findItemModel($model, $value);
@@ -111,15 +112,14 @@ class InjectAction
     }
 
     /**
-     * @return User|bool
+     * @param ActiveRecord $model
+     * @return bool|User
      */
-    protected function hasUserModel()
+    protected function hasUserModel(ActiveRecord $model)
     {
-        if (\Yii::$app->has('user') && \Yii::$app->user->identityClass === $this->className) {
-            return \Yii::$app->user;
-        }
-
-        return false;
+        return $model instanceof IdentityInterface && \Yii::$app->has('user')
+            ? \Yii::$app->get('user')
+            : false;
     }
 
     /**
