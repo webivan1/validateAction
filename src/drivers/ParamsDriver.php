@@ -6,14 +6,15 @@
  * Time: 8:33
  */
 
-namespace webivan\validateAction\models;
+namespace webivan\validateAction\drivers;
 
+use webivan\validateAction\contracts\IDriver;
 use webivan\validateAction\EventValidateAction;
 use webivan\validateAction\helpers\ErrorsTrait;
 use webivan\validateAction\InjectAction;
 use yii\base\DynamicModel;
 
-class ParamsModel implements IModel
+class ParamsDriver implements IDriver
 {
     use ErrorsTrait;
 
@@ -68,6 +69,16 @@ class ParamsModel implements IModel
     }
 
     /**
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
+    public function setAttribute(string $name, $value)
+    {
+        $this->attributes[$name] = $value;
+    }
+
+    /**
      * @return array
      */
     public function getRules(): array
@@ -107,22 +118,24 @@ class ParamsModel implements IModel
     {
         $defaultRules = $this->ruleParams();
 
-        if (in_array($name, $this->required)) {
-            array_push($this->rules, [$name, 'required']);
-        }
+        !in_array($name, $this->required) ?: $this->addRule(['required'], $name);
 
-        if (!$type) {
-            return;
+        if (array_key_exists($type, $defaultRules)) {
+            $this->addRule($defaultRules[$type], $name);
+        } else if (!empty($type) && class_exists((string) $type)) {
+            (new InjectAction($type, $name, $this))->run();
         }
+    }
 
-        if (isset($defaultRules[$type])) {
-            $rule = $defaultRules[$type];
-            array_unshift($rule, $name);
-            array_push($this->rules, $rule);
-        } else if (class_exists($type)) {
-            $inject = new InjectAction($type, $name, $this);
-            $inject->run();
-        }
+    /**
+     * @param array $rule
+     * @param string $name
+     * @return void
+     */
+    public function addRule(array $rule, string $name)
+    {
+        array_unshift($rule, $name);
+        array_push($this->rules, $rule);
     }
 
     /**
@@ -143,15 +156,5 @@ class ParamsModel implements IModel
                 }
             }]
         ];
-    }
-
-    /**
-     * @param string $name
-     * @param mixed $value
-     * @return void
-     */
-    public function setAttribute(string $name, $value)
-    {
-        $this->attributes[$name] = $value;
     }
 }

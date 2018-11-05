@@ -9,13 +9,20 @@
 namespace webivan\validateAction;
 
 use yii\base\Event;
+use webivan\validateAction\contracts\IErrors;
+use webivan\validateAction\components\ValidatorActionComponent;
 use webivan\validateAction\helpers\ErrorsTrait;
 
-class EventValidateAction extends Event
+class EventValidateAction extends Event implements IErrors
 {
     use ErrorsTrait;
 
     const EVENT_NAME = 'beforeRunAction';
+
+    /**
+     * @var ValidatorActionComponent
+     */
+    public $component;
 
     /**
      * @var array

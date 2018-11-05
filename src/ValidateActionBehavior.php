@@ -8,15 +8,14 @@
 
 namespace webivan\validateAction;
 
-use webivan\validateAction\models\DocCommentModel;
-use webivan\validateAction\models\IModel;
-use webivan\validateAction\models\ParamsModel;
 use yii\base\Behavior;
 use yii\base\Controller;
 use yii\base\DynamicModel;
+use yii\base\ErrorException;
+use yii\base\ModelEvent;
+use webivan\validateAction\contracts\IDriver;
 use phpDocumentor\Reflection\DocBlock;
 use phpDocumentor\Reflection\DocBlockFactory;
-use yii\base\ErrorException;
 
 class ValidateActionBehavior extends Behavior
 {
@@ -57,17 +56,17 @@ class ValidateActionBehavior extends Behavior
         $method = $this->getMethod($event->sender, $event->method);
 
         if ($comment = $this->hasCommentValidate($method)) {
-            $model = new DocCommentModel($event, $comment->getTagsByName('param'), $method);
+            $model = $event->component->getDriverComment($event, $comment->getTagsByName('param'), $method);
         } else {
-            $model = new ParamsModel($event, $method->getParameters(), $method);
+            $model = $event->component->getDriverParams($event, $method->getParameters(), $method);
         }
 
         $validateModel = $model->createValidationModel();
 
         $validateModel->on(
             DynamicModel::EVENT_BEFORE_VALIDATE,
-            function () use ($model, $validateModel, $event) {
-                $this->beforeValidate($model, $validateModel, $event);
+            function (ModelEvent $modelEvent) use ($model, $event) {
+                $this->beforeValidate($model, $modelEvent, $event);
             }
         );
 
@@ -82,25 +81,24 @@ class ValidateActionBehavior extends Behavior
     }
 
     /**
-     * @param IModel $model
-     * @param DynamicModel $validateModel
+     * @param IDriver $model
+     * @param ModelEvent $modelEvent
      * @param EventValidateAction $event
      */
-    protected function beforeValidate(IModel $model, DynamicModel $validateModel, EventValidateAction $event)
+    protected function beforeValidate(IDriver $model, ModelEvent $modelEvent, EventValidateAction $event)
     {
+        $validateModel = $modelEvent->sender;
         !$model->hasErrors() ?: $validateModel->addErrors($model->getErrors());
         !$validateModel->hasErrors() ?: $event->setErrors($validateModel->getErrors());
     }
 
     /**
      * @param EventValidateAction $event
-     * @param IModel $model
+     * @param IDriver $model
      */
-    protected function updateParams(EventValidateAction $event, IModel $model)
+    protected function updateParams(EventValidateAction $event, IDriver $model)
     {
-        if (!empty($model->getAttributes())) {
-            $event->params = $model->getAttributes();
-        }
+        empty($model->getAttributes()) ?: $event->params = $model->getAttributes();
     }
 
     /**
@@ -110,13 +108,10 @@ class ValidateActionBehavior extends Behavior
     protected function hasCommentValidate(\ReflectionMethod $method)
     {
         $commentContent = $method->getDocComment();
+        empty($commentContent) ?: $comment = $this->getComment($commentContent);
 
-        if (!empty($commentContent)) {
-            $comment = $this->getComment($commentContent);
-
-            if ($comment->hasTag('validate')) {
-                return $comment;
-            }
+        if (isset($comment) && $comment->hasTag('validate')) {
+            return $comment;
         }
 
         return null;
@@ -131,16 +126,13 @@ class ValidateActionBehavior extends Behavior
     protected function getMethod(Controller $controller, string $methodName): \ReflectionMethod
     {
         $reflection = new \ReflectionClass($controller);
-        $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-        $methods = array_filter($methods, function (\ReflectionMethod $method) use ($methodName) {
-            return $method->getName() === $methodName;
-        });
+        $method = $reflection->getMethod($methodName);
 
-        if (empty($methods)) {
+        if (empty($method)) {
             throw new ErrorException('Undefined method ' . $methodName . ' in class ' . get_class($controller));
         }
 
-        return array_shift($methods);
+        return $method;
     }
 
     /**
@@ -149,8 +141,7 @@ class ValidateActionBehavior extends Behavior
      */
     protected function getComment(string $content): DocBlock
     {
-        $factory = DocBlockFactory::createInstance();
-        return $factory->create($content);
+        return DocBlockFactory::createInstance()->create($content);
     }
 
     /**

@@ -31,10 +31,10 @@ class InjectCommentsController extends Controller
 
     /**
      * @validate
-     * @param \yii\web\Request $request
+     * @param Request $request
      * @return Request
      */
-    public function actionTestRequest($request)
+    public function actionTestRequest(Request $request)
     {
         return $request;
     }

@@ -7,6 +7,7 @@
 
 namespace webivan\validateAction\tests;
 
+use webivan\validateAction\components\ValidatorActionComponent;
 use Yii;
 use webivan\validateAction\tests\models\TestUser;
 use yii\di\Container;
@@ -54,6 +55,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
                     'class' => User::class,
                     'identityClass' => TestUser::class,
                     'enableSession' => false,
+                ],
+                'validator' => [
+                    'class' => ValidatorActionComponent::class,
                 ]
             ]
         ], $config));

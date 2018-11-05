@@ -2,19 +2,19 @@
 /**
  * Created by PhpStorm.
  * User: Ivan
- * Date: 30.10.2018
- * Time: 8:35
+ * Date: 05.11.2018
+ * Time: 15:52
  */
 
-namespace webivan\validateAction\models;
+namespace webivan\validateAction\contracts;
 
 use webivan\validateAction\EventValidateAction;
 use yii\base\DynamicModel;
 
-interface IModel
+interface IDriver extends IErrors
 {
     /**
-     * IModel constructor.
+     * IDriver constructor.
      * @param EventValidateAction $event
      * @param array $params
      * @param \ReflectionMethod $method
@@ -39,21 +39,11 @@ interface IModel
     public function getRules(): array;
 
     /**
-     * @return array
-     */
-    public function getErrors(): array;
-
-    /**
-     * @return boolean
-     */
-    public function hasErrors(): bool;
-
-    /**
-     * @param string $attr
-     * @param string $message
+     * @param array $rule
+     * @param string $name
      * @return void
      */
-    public function addError(string $attr, string $message);
+    public function addRule(array $rule, string $name);
 
     /**
      * @return DynamicModel

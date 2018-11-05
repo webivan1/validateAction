@@ -8,6 +8,7 @@
 
 namespace webivan\validateAction;
 
+use webivan\validateAction\components\ValidatorActionComponent;
 use yii\base\ActionEvent;
 use yii\helpers\Inflector;
 
@@ -23,19 +24,36 @@ trait ValidateActionTrait
      */
     public function runAction($id, $params = [])
     {
-        $this->eventValidate = new EventValidateAction([
-            'params' => $params,
-            'action' => $id,
-            'method' => $this->createMethodById($id)
-        ]);
+        $component = $this->initValidatorComponent();
 
-        $this->trigger(EventValidateAction::EVENT_NAME, $this->eventValidate);
+        if ($component instanceof ValidatorActionComponent) {
+            $this->eventValidate = new EventValidateAction([
+                'component' => $component,
+                'params' => $params,
+                'action' => $id,
+                'method' => $this->createMethodById($id)
+            ]);
 
-        $this->on(self::EVENT_BEFORE_ACTION, function (ActionEvent $event) {
-            $event->isValid = $this->eventValidate->isValid;
-        });
+            $this->trigger(EventValidateAction::EVENT_NAME, $this->eventValidate);
 
-        return parent::runAction($id, $this->eventValidate->params);
+            $this->on(self::EVENT_BEFORE_ACTION, function (ActionEvent $event) {
+                $event->isValid = $this->eventValidate->isValid;
+            });
+
+            $params = $this->eventValidate->params;
+        }
+
+        return parent::runAction($id, $params);
+    }
+
+    /**
+     * @return object
+     */
+    protected function initValidatorComponent()
+    {
+        return \Yii::$app->has('validator')
+            ? \Yii::$app->get('validator')
+            : \Yii::$container->get(ValidatorActionComponent::class);
     }
 
     /**

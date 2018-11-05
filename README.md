@@ -76,9 +76,9 @@ Dependency injection
      * @param integer $number
      * @param string $name
      * @param array $data
-     * @param \yii\web\Response $response
+     * @param Response $response
      */
-    public function actionIndex($request, $number, $name, $data, $response) 
+    public function actionIndex($request, $number, $name, $data, Response $response) 
     {
         // ...
     }
@@ -88,7 +88,7 @@ Dependency injection
 
 ```php 
     // Usually
-    public function actionIndexOld($cityId) 
+    public function actionIndex($cityId) 
     {
         if (is_null($city = City::findOne(['id' => intval($cityId)]))) {
             throw new HttpExceprion(404);
@@ -98,17 +98,29 @@ Dependency injection
     }
     
     // Now
-    public function actionIndexNew(City $city) 
+    public function actionIndex(City $city) 
     {
         return $city;
     }
     
     // Or
+    
     /**
      * @validate
      * @param \app\models\City $city
      */
     public function actionIndexNew($city) 
+    {
+        return $city;
+    }
+    
+    // Or
+    
+    /**
+     * @validate
+     * @param City $city
+     */
+    public function actionIndexNew(City $city) 
     {
         return $city;
     }

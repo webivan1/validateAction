@@ -3,6 +3,7 @@
     "description": "Extension Yii2",
     "keywords": ["yii2", "inject action", "action validate", "DI action"],
     "type": "yii2-extension",
+    "license": "MIT",
     "authors": [
         {
             "name": "Ivan Maltsev",

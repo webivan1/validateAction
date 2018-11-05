@@ -10,8 +10,9 @@ namespace webivan\validateAction;
 
 use webivan\validateAction\models\IFindColumn;
 use webivan\validateAction\models\IFindItem;
-use webivan\validateAction\models\IModel;
+use webivan\validateAction\contracts\IDriver;
 use yii\db\ActiveRecord;
+use yii\helpers\Html;
 use yii\web\IdentityInterface;
 use yii\web\User;
 
@@ -23,7 +24,7 @@ class InjectAction
     private $className;
 
     /**
-     * @var IModel
+     * @var IDriver
      */
     private $model;
 
@@ -36,9 +37,9 @@ class InjectAction
      * InjectAction constructor.
      * @param string $className
      * @param string $name
-     * @param IModel $model
+     * @param IDriver $model
      */
-    public function __construct(string $className, string $name, IModel $model)
+    public function __construct(string $className, string $name, IDriver $model)
     {
         $this->className = $className;
         $this->name = $name;
@@ -90,12 +91,10 @@ class InjectAction
         $value = $this->model->getAttributes()[$this->name] ?? null;
 
         if ($user = $this->hasUserModel($model)) {
-            $value = $this->findItemModel($model, $user->isGuest ? null : $user->id);
-        } else {
-            $value = $this->findItemModel($model, $value);
+            $value = $user->isGuest ? null : $user->id;
         }
 
-        $this->model->setAttribute($this->name, $value);
+        $this->model->setAttribute($this->name, $this->findItemModel($model, $value));
     }
 
     /**
@@ -129,15 +128,11 @@ class InjectAction
      */
     protected function findItemModel(ActiveRecord $model, $value)
     {
-        if (!$value) {
-            return null;
-        }
-
         if ($model instanceof IFindItem) {
             return $model->findItemForInjectAction($value);
         } else {
             return $model->find()
-                ->where([$this->getColumn($model) => $value])
+                ->where([$this->getColumn($model) => Html::encode($value)])
                 ->one();
         }
     }

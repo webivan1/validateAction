@@ -6,19 +6,20 @@
  * Time: 8:33
  */
 
-namespace webivan\validateAction\models;
+namespace webivan\validateAction\drivers;
 
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
 use phpDocumentor\Reflection\Type;
 use phpDocumentor\Reflection\Types\{
     Integer, Nullable, Object_, String_, Null_, Float_, Array_, Boolean, Compound
 };
+use webivan\validateAction\contracts\IDriver;
 use webivan\validateAction\EventValidateAction;
 use webivan\validateAction\InjectAction;
 use webivan\validateAction\helpers\ErrorsTrait;
 use yii\base\DynamicModel;
 
-class DocCommentModel implements IModel
+class DocCommentDriver implements IDriver
 {
     use ErrorsTrait;
 
@@ -65,6 +66,16 @@ class DocCommentModel implements IModel
     public function getAttributes(): array
     {
         return $this->attributes;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
+    public function setAttribute(string $name, $value)
+    {
+        $this->attributes[$name] = $value;
     }
 
     /**
@@ -129,36 +140,60 @@ class DocCommentModel implements IModel
     protected function setRulesByType(array $types, string $name)
     {
         $required = true;
-
         $ruleParams = $this->ruleParams();
 
         /** @var Type $type */
         foreach ($types as $type) {
+            $className = get_class($type);
+
             if ($type instanceof Nullable || $type instanceof Null_) {
                 $required = false;
-                continue;
             }
 
-            if (isset($ruleParams[get_class($type)])) {
-                /** @var array $rule */
-                $rule = $ruleParams[get_class($type)];
-                array_unshift($rule, $name);
-                array_push($this->rules, $rule);
+            if (array_key_exists($className, $ruleParams)) {
+                $this->addRule($ruleParams[$className], $name);
             }
 
             if ($type instanceof Object_) {
-                $objectName = $type->getFqsen();
+                $className = $this->getClassName($name, $type);
 
-                if (class_exists($objectName)) {
-                    $inject = new InjectAction($objectName, $name, $this);
-                    $inject->run();
+                if (class_exists($className)) {
+                    (new InjectAction($className, $name, $this))->run();
                 }
             }
         }
 
-        if ($required) {
-            array_push($this->rules, [$name, 'required']);
+        !$required ?: $this->addRule(['required'], $name);
+    }
+
+    /**
+     * @param string $name
+     * @param Object_ $type
+     * @return string
+     */
+    protected function getClassName(string $name, Object_ $type): string
+    {
+        $params = $this->method->getParameters();
+        $className = $type->getFqsen();
+
+        foreach ($params as $param) {
+            if ($param->getName() === $name && $param->getType()) {
+                $className = $param->getType()->getName();
+            }
         }
+
+        return $className;
+    }
+
+    /**
+     * @param array $rule
+     * @param string $name
+     * @return void
+     */
+    public function addRule(array $rule, string $name)
+    {
+        array_unshift($rule, $name);
+        array_push($this->rules, $rule);
     }
 
     /**
@@ -179,15 +214,5 @@ class DocCommentModel implements IModel
                 }
             }]
         ];
-    }
-
-    /**
-     * @param string $name
-     * @param mixed $value
-     * @return void
-     */
-    public function setAttribute(string $name, $value)
-    {
-        $this->attributes[$name] = $value;
     }
 }
