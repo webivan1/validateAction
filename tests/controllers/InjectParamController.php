@@ -64,4 +64,14 @@ class InjectParamController extends Controller
     {
         return $user;
     }
+
+    public function actionTestModelEmpty(TestActiveRecord $model, TestActiveRecord $injectTestModel)
+    {
+        return [$model, $injectTestModel];
+    }
+
+    public function actionTestModelEmpty2(TestActiveRecord $injectTestModel)
+    {
+        return $injectTestModel;
+    }
 }

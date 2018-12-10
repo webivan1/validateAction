@@ -144,4 +144,25 @@ class ValidatorInjectParamsTest extends TestCase
         $this->assertNull($result2);
         $this->assertNull($result3);
     }
+
+    public function testInjectEmptyModel()
+    {
+        $controller = clone $this->controller;
+
+        [$test1, $test2] = $controller->run('test-model-empty', [
+            'model' => 1000
+        ]);
+
+        $this->assertTrue($test1 instanceof TestActiveRecord);
+        $this->assertTrue($test2 instanceof TestActiveRecord);
+    }
+
+    public function testInjectEmptyModel2()
+    {
+        $controller = clone $this->controller;
+
+        $result = $controller->run('test-model-empty2');
+
+        $this->assertTrue($result instanceof TestActiveRecord);
+    }
 }

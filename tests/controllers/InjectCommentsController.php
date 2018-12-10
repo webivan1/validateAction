@@ -101,4 +101,26 @@ class InjectCommentsController extends Controller
     {
         return $user;
     }
+
+    /**
+     * @validate
+     * @param \webivan\validateAction\tests\models\TestActiveRecord $model
+     * @param \webivan\validateAction\tests\models\TestActiveRecord $injectTestModel
+     * @return TestActiveRecord[]
+     */
+    public function actionTestModelEmpty($model, $injectTestModel)
+    {
+        return [$model, $injectTestModel];
+    }
+
+    /**
+     * @validate
+     * @param TestActiveRecord $injectTestModel
+     * @param TestActiveRecord|null $model
+     * @return TestActiveRecord[]
+     */
+    public function actionTestModelEmpty2(TestActiveRecord $injectTestModel, TestActiveRecord $model = null)
+    {
+        return [$injectTestModel, $model];
+    }
 }

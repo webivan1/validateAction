@@ -69,6 +69,7 @@ class InjectAction
 
     /**
      * Run script
+     * @throws \yii\base\InvalidConfigException
      */
     public function run()
     {
@@ -85,16 +86,25 @@ class InjectAction
 
     /**
      * @param ActiveRecord $model
+     * @throws \yii\base\InvalidConfigException
      */
     protected function injectActiveRecord(ActiveRecord $model)
     {
-        $value = $this->model->getAttributes()[$this->name] ?? null;
+        $attributes = $this->model->getAttributes();
+
+        $value = $attributes[$this->name] ?? null;
 
         if ($user = $this->hasUserModel($model)) {
             $value = $user->isGuest ? null : $user->id;
         }
 
-        $this->model->setAttribute($this->name, $this->findItemModel($model, $value));
+        $result = $this->findItemModel($model, $value);
+
+        if (strpos($this->name, 'inject') === 0 && is_null($result)) {
+            $result = clone $model;
+        }
+
+        $this->model->setAttribute($this->name, $result);
     }
 
     /**
@@ -113,6 +123,7 @@ class InjectAction
     /**
      * @param ActiveRecord $model
      * @return bool|User
+     * @throws \yii\base\InvalidConfigException
      */
     protected function hasUserModel(ActiveRecord $model)
     {
@@ -131,7 +142,7 @@ class InjectAction
         if ($model instanceof IFindItem) {
             return $model->findItemForInjectAction($value);
         } else {
-            return $model->find()
+            return $value === null ? null : $model->find()
                 ->where([$this->getColumn($model) => Html::encode($value)])
                 ->one();
         }
