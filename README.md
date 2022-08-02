@@ -1,3 +1,6 @@
+❗Deprecated
+------
+
 # Ext Yii 2 Validate action params, DI action
 
 Install
